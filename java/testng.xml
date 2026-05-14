@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+
+<suite name="Biblioteca Pro — Full Test Suite" verbose="2" parallel="false">
+
+    <parameter name="baseUrl" value="https://biblioteca-front-end-1satou1s-projects.vercel.app"/>
+    <parameter name="browser"  value="chrome"/>
+    <parameter name="headless" value="false"/>
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <test name="01 - Autenticacion y Registro">
+        <classes>
+            <class name="com.biblioteca.tests.AuthTests"/>
+        </classes>
+    </test>
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <test name="02 - Catalogo de Libros">
+        <classes>
+            <class name="com.biblioteca.tests.CatalogTests"/>
+        </classes>
+    </test>
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <test name="03 - Tipos y Generos">
+        <classes>
+            <class name="com.biblioteca.tests.TypesGenresTests"/>
+        </classes>
+    </test>
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <test name="04 - Dashboard y Estadisticas">
+        <classes>
+            <class name="com.biblioteca.tests.DashboardTests"/>
+        </classes>
+    </test>
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <test name="05 - Gestion de Usuarios">
+        <classes>
+            <class name="com.biblioteca.tests.UsersTests"/>
+        </classes>
+    </test>
+
+    <listeners>
+        <listener class-name="com.biblioteca.base.ExtentReportListener"/>
+    </listeners>
+
+</suite>

@@ -1,0 +1,25 @@
+# ── Entornos y dependencias ───────────────────────────────────────────────────
+robot/venv/
+__pycache__/
+*.py[cod]
+*.class
+
+# ── Artefactos generados por las ejecuciones ──────────────────────────────────
+robot/results/
+java/target/
+
+# ── Datos de prueba generados (se regeneran con generar_datos.py) ─────────────
+robot/data/datos_prueba.xlsx
+java/src/test/resources/datos_prueba.xlsx
+
+# ── Logs y reportes sueltos ───────────────────────────────────────────────────
+*.log
+log.html
+report.html
+output.xml
+selenium-screenshot-*.png
+
+# ── Sistema operativo ─────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini

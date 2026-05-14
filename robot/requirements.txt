@@ -1,0 +1,7 @@
+robotframework>=6.1.1
+robotframework-seleniumlibrary>=6.2.0
+robotframework-screencaplibrary>=1.5.1
+openpyxl>=3.1.2
+Pillow>=10.0.0
+webdriver-manager>=4.0.1
+opencv-python>=4.9.0
