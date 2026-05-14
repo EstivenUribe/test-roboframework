@@ -45,10 +45,12 @@ public class TypesGenresTests extends BaseTest {
             if ("exito".equals(row.get("resultado_esperado"))) {
                 boolean ok = driver.getPageSource().contains(row.get("nombre")) ||
                              toastContains("agregado") || toastContains("creado");
-                test.info(id + ": visible en página = " + ok);
+                Assert.assertTrue(ok,
+                    id + ": el tipo/género '" + row.get("nombre") + "' debe aparecer en la lista (HU-010)");
             } else {
                 boolean err = hasValidationError() || toastContains("existe") || toastContains("obligatorio");
-                test.info(id + ": error esperado = " + err);
+                Assert.assertTrue(err,
+                    id + ": debe mostrar error de validación o duplicado (HU-010)");
             }
         }
     }

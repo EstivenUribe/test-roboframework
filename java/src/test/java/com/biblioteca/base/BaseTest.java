@@ -47,12 +47,20 @@ public abstract class BaseTest {
     protected static ExtentReports extent;
     protected ExtentTest test;
 
+    // Resuelto una vez por suite; -Dheadless=true tiene prioridad sobre testng.xml
+    private static volatile boolean headlessMode = false;
+
     // ── Parámetros TestNG ──────────────────────────────────────────────────
     @Parameters({"browser", "headless"})
     @BeforeSuite(alwaysRun = true)
     public void initSuite(
             @Optional("chrome") String browser,
             @Optional("false")  String headless) throws IOException {
+
+        // -Dheadless=true (mvn test -Dheadless=true) sobreescribe el parámetro TestNG
+        String sysProp = System.getProperty("headless");
+        headlessMode   = (sysProp != null) ? Boolean.parseBoolean(sysProp)
+                                           : Boolean.parseBoolean(headless);
 
         Files.createDirectories(Paths.get(Config.SCREENSHOTS));
         Files.createDirectories(Paths.get(Config.VIDEOS));
@@ -67,6 +75,7 @@ public abstract class BaseTest {
         extent.attachReporter(spark);
         extent.setSystemInfo("URL",       Config.BASE_URL);
         extent.setSystemInfo("Browser",   browser);
+        extent.setSystemInfo("Headless",  String.valueOf(headlessMode));
         extent.setSystemInfo("Ejecutado", LocalDateTime.now().toString());
     }
 
@@ -75,10 +84,17 @@ public abstract class BaseTest {
         // Configurar ChromeDriver
         WebDriverManager.chromedriver().setup();
         ChromeOptions opts = new ChromeOptions();
-        opts.addArguments("--start-maximized");
         opts.addArguments("--disable-notifications");
         opts.addArguments("--disable-popup-blocking");
-        // opts.addArguments("--headless=new");  // descomentar para CI
+        if (headlessMode) {
+            opts.addArguments("--headless=new");
+            opts.addArguments("--window-size=1366,900");
+            opts.addArguments("--disable-gpu");
+            opts.addArguments("--no-sandbox");
+            opts.addArguments("--disable-dev-shm-usage");
+        } else {
+            opts.addArguments("--start-maximized");
+        }
 
         driver = new ChromeDriver(opts);
         driver.manage().timeouts()

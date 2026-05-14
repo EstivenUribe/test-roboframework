@@ -1,11 +1,16 @@
 # ── Entornos y dependencias ───────────────────────────────────────────────────
 robot/venv/
-__pycache__/
+**/__pycache__/
 *.py[cod]
 *.class
+*.jar
+!java/pom.xml
 
 # ── Artefactos generados por las ejecuciones ──────────────────────────────────
-robot/results/
+robot/results/logs/
+robot/results/screenshots/
+robot/results/videos/
+robot/results/dryrun/
 java/target/
 
 # ── Datos de prueba generados (se regeneran con generar_datos.py) ─────────────
@@ -18,6 +23,16 @@ log.html
 report.html
 output.xml
 selenium-screenshot-*.png
+geckodriver.log
+chromedriver*.log
+nohup.out
+
+# ── IDEs ──────────────────────────────────────────────────────────────────────
+.idea/
+*.iml
+.vscode/
+*.suo
+*.user
 
 # ── Sistema operativo ─────────────────────────────────────────────────────────
 .DS_Store

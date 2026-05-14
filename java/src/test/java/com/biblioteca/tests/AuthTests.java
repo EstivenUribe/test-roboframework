@@ -71,8 +71,11 @@ public class AuthTests extends BaseTest {
                 test.pass(id + " PASÓ: login exitoso");
                 panelPage.logout();
             } else {
-                boolean hasError = loginPage.toastContains("") || loginPage.hasValidationError();
-                test.info(id + ": error esperado detectado = " + hasError);
+                String mensajeEsperado = row.get("mensaje_esperado");
+                boolean hasError = loginPage.hasValidationError()
+                    || (!mensajeEsperado.isEmpty() && loginPage.toastContains(mensajeEsperado));
+                Assert.assertTrue(hasError,
+                    id + ": debe mostrar error de validación o toast '" + mensajeEsperado + "'");
                 loginPage.open();
             }
         }
@@ -127,13 +130,14 @@ public class AuthTests extends BaseTest {
             registerPage.submit();
 
             if ("exito".equals(row.get("resultado_esperado"))) {
-                boolean ok = registerPage.toastContains("") || !registerPage.hasValidationError();
-                test.info(id + ": resultado éxito, errores = " + registerPage.hasValidationError());
+                Assert.assertFalse(registerPage.hasValidationError(),
+                    id + ": registro exitoso no debe mostrar errores de validación (HU-001)");
             } else {
+                String msgEsperado = row.get("mensaje_error");
                 boolean hasError = registerPage.hasValidationError()
-                    || registerPage.toastContains(row.get("mensaje_error"));
-                test.info(id + ": error esperado = " + hasError +
-                    " | mensaje: " + row.get("mensaje_error"));
+                    || (!msgEsperado.isEmpty() && registerPage.toastContains(msgEsperado));
+                Assert.assertTrue(hasError,
+                    id + ": debe mostrar error de validación o toast '" + msgEsperado + "' (HU-001)");
             }
             step(id + "_fin_caso");
         }

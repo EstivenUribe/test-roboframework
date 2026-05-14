@@ -67,11 +67,7 @@ public class UsersTests extends BaseTest {
             usersPage.clickEditFirst();
             sleep(500);
 
-            try {
-                usersPage.changeRol(row.get("rol_nuevo"));
-            } catch (Exception e) {
-                test.warning(id + ": no se pudo cambiar rol: " + e.getMessage());
-            }
+            usersPage.changeRol(row.get("rol_nuevo"));
 
             if (!row.get("nombre_nuevo").isEmpty()) {
                 try {
@@ -84,7 +80,10 @@ public class UsersTests extends BaseTest {
             usersPage.saveChanges();
             sleep(1000);
             step(id + "_despues_guardar");
-            test.info(id + ": guardado");
+            boolean saved = usersPage.toastContains("guardado") || usersPage.toastContains("actualizado")
+                || !usersPage.getTableText().isEmpty();
+            Assert.assertTrue(saved,
+                id + ": el usuario debe guardarse correctamente (HU-005/HU-014)");
         }
     }
 
@@ -158,25 +157,21 @@ public class UsersTests extends BaseTest {
     public void tc_usr_010_redisConfirmacion() {
         loginAsAdmin();
         step("Clic en tarjeta Redis");
-        try {
-            panelPage.clickRedisCard();
-            sleep(500);
-            step("Verificar modal de confirmación Redis");
-            boolean modal = !driver.findElements(By.xpath(
-                "//button[contains(text(),'Sí') or contains(text(),'Confirmar') or contains(text(),'Borrar')]"
-            )).isEmpty();
-            test.info("Modal Redis visible: " + modal);
-            Assert.assertTrue(modal,
-                "Debe pedir confirmación antes de borrar sesiones Redis (HU-016)");
-            step("Confirmar borrado Redis");
-            panelPage.confirmModal();
-            sleep(2000);
-            String toast = "";
-            try { toast = panelPage.waitForToast(); } catch (Exception ignored) {}
-            test.info("Toast Redis: " + toast);
-            step("TC-USR-010_redis_borrado");
-        } catch (Exception e) {
-            test.warning("Error en flujo Redis: " + e.getMessage());
-        }
+        panelPage.clickRedisCard();
+        sleep(500);
+        step("Verificar modal de confirmación Redis");
+        boolean modal = !driver.findElements(By.xpath(
+            "//button[contains(text(),'Sí') or contains(text(),'Confirmar') or contains(text(),'Borrar')]"
+        )).isEmpty();
+        Assert.assertTrue(modal,
+            "Debe pedir confirmación antes de borrar sesiones Redis (HU-016)");
+        step("Confirmar borrado Redis");
+        panelPage.confirmModal();
+        sleep(2000);
+        String toast = "";
+        try { toast = panelPage.waitForToast(); } catch (Exception ignored) {}
+        Assert.assertFalse(toast.isEmpty(),
+            "Debe aparecer toast de confirmación tras borrar sesiones Redis (HU-016)");
+        step("TC-USR-010_redis_borrado");
     }
 }

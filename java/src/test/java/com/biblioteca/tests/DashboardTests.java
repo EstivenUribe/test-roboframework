@@ -19,8 +19,8 @@ public class DashboardTests extends BaseTest {
         panelPage.goToDashboard();
         dashboardPage.waitForDashboard();
         step("Dashboard visible");
-        Assert.assertFalse(driver.getPageSource().isEmpty(),
-            "El Dashboard debe cargar correctamente (HU-011)");
+        Assert.assertTrue(driver.getPageSource().contains("Generar"),
+            "El Dashboard debe mostrar el botón Generar (HU-011)");
     }
 
     @Test(description = "TC-DSH-002: Generar gráfico con los 4 filtros (data-driven)")
@@ -36,12 +36,7 @@ public class DashboardTests extends BaseTest {
             test.info("Caso " + row.get("id_caso") + ": filtro = " + filtro);
 
             step("Seleccionar filtro: " + filtro);
-            try {
-                dashboardPage.selectFilter(filtro);
-            } catch (Exception e) {
-                test.warning("No se pudo seleccionar filtro '" + filtro + "': " + e.getMessage());
-                continue;
-            }
+            dashboardPage.selectFilter(filtro);
 
             step("Generar gráfico");
             dashboardPage.clickGenerar();
@@ -51,7 +46,8 @@ public class DashboardTests extends BaseTest {
             boolean chartOk = dashboardPage.isChartVisible() ||
                 driver.getPageSource().contains("canvas") ||
                 driver.getPageSource().contains("chart");
-            test.info("Gráfico visible: " + chartOk);
+            Assert.assertTrue(chartOk,
+                row.get("id_caso") + ": debe generarse un gráfico para filtro '" + filtro + "' (HU-011)");
         }
     }
 
@@ -101,7 +97,9 @@ public class DashboardTests extends BaseTest {
         dashboardPage.clickGenerar();
         boolean disabledDetected = dashboardPage.isGenerarDisabled();
         step("Estado botón tras click: disabled=" + disabledDetected);
-        // El botón puede habilitarse rápidamente, sólo loguear
-        test.info("Botón deshabilitado durante generación detectado: " + disabledDetected);
+        sleep(2500);
+        boolean chartAppearedAfterWait = dashboardPage.isChartVisible();
+        Assert.assertTrue(disabledDetected || chartAppearedAfterWait,
+            "El botón debe deshabilitar durante la generación o el gráfico debe aparecer (HU-011)");
     }
 }
