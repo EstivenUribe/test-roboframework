@@ -45,6 +45,10 @@ C_BTN_JAV  = "#2980b9"
 C_BTN_JAV2 = "#1a5276"
 C_BTN_STP  = "#c0392b"
 C_BTN_STP2 = "#96281b"
+C_BTN_QRF  = "#d35400"   # naranja rápido RF
+C_BTN_QRF2 = "#a84300"
+C_BTN_QJV  = "#8e44ad"   # morado rápido Java
+C_BTN_QJV2 = "#6c3483"
 C_FG       = "#ecf0f1"
 C_MUTED    = "#95a5a6"
 C_GOLD     = "#f1c40f"
@@ -105,7 +109,8 @@ class App(tk.Tk):
         self.minsize(960, 640)
 
         self._proc: subprocess.Popen | None = None
-        self._running   = False
+        self._running    = False
+        self._cur_mode   = "rf"
         self._ss_images: list = []
         self._ss_index  = 0
         self._ss_paths  : list[str] = []
@@ -250,8 +255,13 @@ class App(tk.Tk):
 
         ttk.Separator(parent).pack(fill="x", padx=12)
 
+        # ── Sección: ejecución completa ───────────────────────────────────────
+        tk.Label(parent, text="Suite completa (browser visible)",
+                 bg=C_PANEL, fg=C_MUTED, font=FONT_SMALL,
+                 anchor="w", pady=4).pack(fill="x", padx=14)
+
         btn_frame = tk.Frame(parent, bg=C_PANEL)
-        btn_frame.pack(fill="x", padx=12, pady=(10, 4))
+        btn_frame.pack(fill="x", padx=12, pady=(0, 4))
 
         self.btn_rf = self._make_btn(
             btn_frame, "▶   Robot Framework",
@@ -261,10 +271,46 @@ class App(tk.Tk):
         self.btn_jav = self._make_btn(
             btn_frame, "▶   Java / Maven",
             C_BTN_JAV, C_BTN_JAV2, lambda: self._run("java"))
-        self.btn_jav.pack(fill="x", pady=(0, 6))
+        self.btn_jav.pack(fill="x")
+
+        ttk.Separator(parent).pack(fill="x", padx=12, pady=(10, 0))
+
+        # ── Sección: ejecución rápida ─────────────────────────────────────────
+        hdr_q = tk.Frame(parent, bg=C_PANEL)
+        hdr_q.pack(fill="x", padx=14, pady=(4, 2))
+        tk.Label(hdr_q, text="⚡  Ejecución Rápida",
+                 bg=C_PANEL, fg="#f39c12", font=("Segoe UI", 9, "bold")
+                 ).pack(side="left")
+        tk.Label(hdr_q, text=" headless · sin ventana",
+                 bg=C_PANEL, fg=C_MUTED, font=FONT_TINY
+                 ).pack(side="left", pady=1)
+
+        btn_q = tk.Frame(parent, bg=C_PANEL)
+        btn_q.pack(fill="x", padx=12, pady=(0, 4))
+
+        self.btn_rf_quick = self._make_btn(
+            btn_q, "⚡  Robot · Smoke  (7 tests)",
+            C_BTN_QRF, C_BTN_QRF2, lambda: self._run("rf_quick"))
+        self.btn_rf_quick.pack(fill="x", pady=(0, 6))
+        tk.Label(btn_q, text="   headless · solo smoke · loglevel WARN",
+                 bg=C_PANEL, fg=C_MUTED, font=FONT_TINY, anchor="w"
+                 ).pack(fill="x", pady=(0, 4))
+
+        self.btn_jav_quick = self._make_btn(
+            btn_q, "⚡  Java · Headless  (36 tests)",
+            C_BTN_QJV, C_BTN_QJV2, lambda: self._run("java_quick"))
+        self.btn_jav_quick.pack(fill="x")
+        tk.Label(btn_q, text="   headless · suite completa",
+                 bg=C_PANEL, fg=C_MUTED, font=FONT_TINY, anchor="w"
+                 ).pack(fill="x", pady=(0, 2))
+
+        ttk.Separator(parent).pack(fill="x", padx=12, pady=(6, 0))
+
+        stop_frame = tk.Frame(parent, bg=C_PANEL)
+        stop_frame.pack(fill="x", padx=12, pady=(6, 4))
 
         self.btn_stop = self._make_btn(
-            btn_frame, "⏹   Detener",
+            stop_frame, "⏹   Detener",
             C_BTN_STP, C_BTN_STP2, self._stop)
         self.btn_stop.pack(fill="x")
         self.btn_stop.config(state="disabled")
@@ -418,20 +464,32 @@ class App(tk.Tk):
 
     # ── Ejecución ─────────────────────────────────────────────────────────────
 
+    # Maps mode → (ss_source, display label)
+    _MODE_META = {
+        "rf":        ("rf",   "Robot Framework (completo)"),
+        "java":      ("java", "Java / Maven (completo)"),
+        "rf_quick":  ("rf",   "⚡ Robot · Smoke headless"),
+        "java_quick":("java", "⚡ Java · Headless"),
+    }
+
+    def _all_run_buttons(self):
+        return [self.btn_rf, self.btn_jav, self.btn_rf_quick, self.btn_jav_quick]
+
     def _run(self, mode: str):
         if self._running:
             return
         self._running   = True
-        self._ss_source = mode
-        self.var_src.set(mode)
+        self._cur_mode  = mode
+        src, label      = self._MODE_META[mode]
+        self._ss_source = src
+        self.var_src.set(src)
         self._ss_paths.clear()
         self._ss_index = 0
 
-        self.btn_rf.config(state="disabled")
-        self.btn_jav.config(state="disabled")
+        for b in self._all_run_buttons():
+            b.config(state="disabled")
         self.btn_stop.config(state="normal")
         self.progress.start(12)
-        label = "Robot Framework" if mode == "rf" else "Java / Maven"
         self.lbl_status.config(fg=C_INFO, text=f"Ejecutando {label}…")
 
         self._log("=" * 52, "dim")
@@ -442,8 +500,13 @@ class App(tk.Tk):
 
     def _worker(self, mode: str):
         try:
-            cmd, cwd = (self._build_cmd_rf() if mode == "rf"
-                        else self._build_cmd_java())
+            builders = {
+                "rf":         self._build_cmd_rf,
+                "java":       self._build_cmd_java,
+                "rf_quick":   self._build_cmd_rf_quick,
+                "java_quick": self._build_cmd_java_quick,
+            }
+            cmd, cwd = builders[mode]()
 
             self._log(f"Dir : {cwd}", "dim")
             self._log(f"Cmd : {' '.join(str(c) for c in cmd)}\n", "dim")
@@ -497,6 +560,36 @@ class App(tk.Tk):
                "-Dsurefire.useFile=false"]
         return cmd, JAVA
 
+    def _build_cmd_rf_quick(self):
+        """Robot Framework: solo smoke, Chrome headless, log WARN (más rápido)."""
+        venv_robot = ROBOT / "venv" / "Scripts" / "robot.exe"
+        robot_cmd  = str(venv_robot) if venv_robot.exists() else "robot"
+        cmd = [
+            robot_cmd,
+            "--outputdir", str(ROBOT / "results" / "logs"),
+            "--pythonpath", str(ROBOT / "resources"),
+            "--log",    "log.html",
+            "--report", "report.html",
+            "--variable", "BROWSER:chrome",
+            "--variable", "HEADLESS:true",
+            "--variable", "RECORD_VIDEO:false",
+            "--variable", f"SCREENSHOTS_DIR:{ROBOT / 'results' / 'screenshots'}",
+            "--variable", f"VIDEOS_DIR:{ROBOT / 'results' / 'videos'}",
+            "--loglevel", "WARN",
+            "--include",  "smoke",
+            "tests",
+        ]
+        return cmd, ROBOT
+
+    def _build_cmd_java_quick(self):
+        """Java/Maven: suite completa en Chrome headless."""
+        mvn = _find_mvn()
+        cmd = [mvn, "test",
+               "-Dfile.encoding=UTF-8",
+               "-Dsurefire.useFile=false",
+               "-Dheadless=true"]
+        return cmd, JAVA
+
     def _dispatch_line(self, line: str):
         tag  = "plain"
         low  = line.lower()
@@ -525,17 +618,19 @@ class App(tk.Tk):
     def _on_done(self, rc: int):
         self._running = False
         self._proc    = None
-        self.btn_rf.config(state="normal")
-        self.btn_jav.config(state="normal")
+        for b in self._all_run_buttons():
+            b.config(state="normal")
         self.btn_stop.config(state="disabled")
         self.progress.stop()
+        _, label = self._MODE_META.get(self._cur_mode, ("rf", self._cur_mode))
         if rc == 0:
-            self.lbl_status.config(fg=C_PASS, text="✔  Todos los tests completados")
-            self._log("\n✔  BUILD SUCCESS — todos los tests pasaron.", "ok")
+            self.lbl_status.config(fg=C_PASS,
+                                    text=f"✔  {label} — todos pasaron")
+            self._log(f"\n✔  BUILD SUCCESS — {label}.", "ok")
         else:
             self.lbl_status.config(fg=C_FAIL,
-                                    text=f"✖  Completado con errores (rc={rc})")
-            self._log(f"\n✖  Finalizó con código {rc}. Revisa el reporte.", "error")
+                                    text=f"✖  {label} — errores (rc={rc})")
+            self._log(f"\n✖  {label} finalizó con código {rc}. Revisa el reporte.", "error")
 
     # ── Consola ───────────────────────────────────────────────────────────────
 
@@ -657,8 +752,8 @@ class App(tk.Tk):
         self._log("\n⏹  Ejecución detenida por el usuario.", "warn")
         self.lbl_status.config(fg=C_WARN, text="⏹  Detenido por el usuario")
         self.progress.stop()
-        self.btn_rf.config(state="normal")
-        self.btn_jav.config(state="normal")
+        for b in self._all_run_buttons():
+            b.config(state="normal")
         self.btn_stop.config(state="disabled")
         self._running = False
 

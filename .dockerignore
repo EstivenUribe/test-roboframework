@@ -1,0 +1,35 @@
+# Python virtual environment (~300 MB, rebuilt inside the image)
+robot/venv/
+
+# Build artifacts
+robot/results/
+java/target/
+
+# GUI launcher (tkinter, no display in Docker)
+gui/
+
+# Python cache
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+
+# Git metadata
+.git/
+.gitignore
+
+# OS junk
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Pre-existing Excel files (generated at container start)
+robot/data/datos_prueba.xlsx
+java/src/test/resources/datos_prueba.xlsx
+
+# Docs (not needed inside the image)
+*.md
+
+# Windows batch / PowerShell scripts
+*.bat
+*.ps1

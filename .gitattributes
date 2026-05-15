@@ -1,2 +1,6 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Force LF for scripts that run inside Linux containers
+docker/*.sh text eol=lf
+clean.sh    text eol=lf

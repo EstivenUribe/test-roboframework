@@ -1,15 +1,10 @@
-# Biblioteca Pro — Base QA Automatizada
+# Biblioteca Pro — Suite QA Automatizada
 
-Suite de pruebas end-to-end para la aplicacion web Biblioteca Pro, construida
-con dos stacks complementarios y una GUI Windows para ejecutarlos.
+> Pruebas end-to-end automatizadas para la aplicación web **Biblioteca Pro**,
+> implementadas con dos stacks complementarios y una interfaz gráfica de ejecución.
 
-- **Robot Framework 6** — keyword-driven, 43 casos, 5 archivos `.robot`.
-- **Java 11 + Selenium 4 + TestNG** — Page Object Model, 36 casos, 5 clases.
-- **GUI Tkinter** — ejecuta ambas suites desde Windows y muestra capturas en vivo.
-
-Sitio bajo prueba: `https://biblioteca-front-end-1satou1s-projects.vercel.app`
-
-Equipo:
+**Asignatura:** Pruebas y Gestión de la Configuración  
+**Docente:** David Mejia Tabares
 
 | Integrante | GitHub |
 |---|---|
@@ -17,60 +12,532 @@ Equipo:
 | Jhoan Londono | [jhoan636](https://github.com/jhoan636) |
 | Estiven Uribe | [EstivenUribe](https://github.com/EstivenUribe) |
 
-Asignatura: **Pruebas y Gestion de la Configuracion**
-Docente: David Mejia Tabares
+---
 
-> La suite ejecuta pruebas contra un ambiente remoto compartido. Los casos
-> destructivos usan datos con prefijo `QA_AUTO_` y timestamp para no contaminar
-> datos reales.
+## Presentación del proyecto
+
+<!-- ═══════════════════════════════════════════════════════════════
+     IFRAME · Google Slides
+     En GitHub el iframe no se renderiza; úsalo en GitLab,
+     Notion, GitHub Pages o cualquier plataforma que acepte HTML.
+     ═══════════════════════════════════════════════════════════════ -->
+
+<iframe
+  src="https://docs.google.com/presentation/d/e/2PACX-1vTdbCmqJRZQ9j_RhMr9mpKgxCtge33yqo5Y0yOKaVa0prgEFEyft3TTxobcRC_O2dsxaDVmLaCOPlJ3/pubembed?start=false&loop=false&delayms=3000"
+  frameborder="0"
+  width="1440"
+  height="839"
+  allowfullscreen="true"
+  mozallowfullscreen="true"
+  webkitallowfullscreen="true">
+</iframe>
 
 ---
 
 ## Tabla de contenidos
 
-1. [Estado actual](#estado-actual)
-2. [Estructura del proyecto](#estructura-del-proyecto)
-3. [Requisitos](#requisitos)
-4. [Datos de prueba](#datos-de-prueba)
-5. [Ejecucion Robot Framework](#ejecucion-robot-framework)
-6. [Ejecucion Java Selenium](#ejecucion-java-selenium)
-7. [GUI de ejecucion](#gui-de-ejecucion)
-8. [Limpieza de artefactos](#limpieza-de-artefactos)
-9. [Matriz de cobertura](#matriz-de-cobertura)
-10. [Evidencias y reportes](#evidencias-y-reportes)
-11. [Buenas practicas](#buenas-practicas)
-12. [Mejoras pendientes](#mejoras-pendientes)
+1. [¿Qué es este proyecto?](#qué-es-este-proyecto)
+2. [Arquitectura general](#arquitectura-general)
+3. [Interfaz gráfica](#interfaz-gráfica)
+4. [Stack tecnológico](#stack-tecnológico)
+5. [Flujo de ejecución de un test](#flujo-de-ejecución-de-un-test)
+6. [Datos de prueba](#datos-de-prueba)
+7. [Cómo ejecutar](#cómo-ejecutar)
+   - [Docker (recomendado, cualquier equipo)](#-docker-recomendado)
+   - [Robot Framework local](#robot-framework-local)
+   - [Java / TestNG local](#java--testng-local)
+   - [GUI Windows](#gui-windows)
+8. [Cobertura de pruebas](#cobertura-de-pruebas)
+9. [Artefactos y reportes](#artefactos-y-reportes)
+10. [Limpieza](#limpieza)
 
 ---
 
-## Estado actual
+## ¿Qué es este proyecto?
 
-- Robot Framework: **43 tests** en 5 archivos `.robot`, 7 etiquetados `smoke`.
-- Java / TestNG: **36 tests** en 5 clases, modo headless funcional.
-- Excel de datos: **7 hojas** generadas con timestamp por `generar_datos.py`.
-- `testFailureIgnore=false` en `pom.xml`: Maven reporta BUILD FAILURE si hay tests fallidos.
-- Scripts `run_tests.bat` / `run_tests.sh` presentes para Robot y Java.
+**Biblioteca Pro** es una SPA React para gestión de biblioteca.
+Esta suite valida sus módulos principales con pruebas automatizadas de extremo a extremo.
 
-Validaciones realizadas localmente:
+| Característica | Robot Framework | Java Selenium |
+|---|---|---|
+| Paradigma | Keyword-driven | Page Object Model |
+| Tests | **43 casos** | **36 casos** |
+| Archivos | 5 `.robot` | 5 clases Java |
+| Datos | Excel `.xlsx` | Excel `.xlsx` |
+| Reporte | `report.html` + `log.html` | ExtentReports HTML |
+| Video | `.avi` (XVID) | `.gif` |
 
-```powershell
-# Dry-run Robot: verifica sintaxis de los 43 tests sin abrir navegador
-robot\venv\Scripts\robot.exe --dryrun --pythonpath robot\resources --outputdir robot\results\dryrun robot\tests
-# Resultado: 43 tests parsean OK
+Sitio bajo prueba: [`https://biblioteca-front-end-1satou1s-projects.vercel.app`](https://biblioteca-front-end-1satou1s-projects.vercel.app)
+
+---
+
+## Arquitectura general
+
+```mermaid
+flowchart TD
+    subgraph DATOS["📊 Datos de prueba"]
+        GEN["generar_datos.py\n(7 hojas · timestamp único)"]
+        XLS[("datos_prueba.xlsx")]
+        GEN -->|genera| XLS
+    end
+
+    subgraph RF["🤖 Robot Framework"]
+        RES["resources/\nkeywords · variables · localizadores"]
+        TESTS_RF["tests/\n01_autenticacion · 02_catalogo\n03_tipos_generos · 04_dashboard\n05_usuarios"]
+        RES --> TESTS_RF
+    end
+
+    subgraph JAVA["☕ Java Selenium"]
+        PO["pages/\nPage Object Model"]
+        TESTS_JV["tests/\nAuthTests · CatalogTests\nDashboardTests · TypesGenresTests\nUsersTests"]
+        PO --> TESTS_JV
+    end
+
+    subgraph OUTPUTS["📁 Artefactos"]
+        OUT_RF["robot/results/\nlogs · screenshots · videos"]
+        OUT_JV["java/target/\nextent-reports · screenshots · videos"]
+    end
+
+    XLS -->|ExcelReader.py| RF
+    XLS -->|ExcelReader.java| JAVA
+
+    RF -->|SeleniumLibrary\n+ Chrome headless| SUT["🌐 Biblioteca Pro\n(Vercel)"]
+    JAVA -->|Selenium 4\n+ ChromeDriver| SUT
+
+    RF --> OUT_RF
+    JAVA --> OUT_JV
+
+    style SUT fill:#4a90d9,color:#fff
+    style DATOS fill:#f5f5f5
+    style RF fill:#e8f5e9
+    style JAVA fill:#e3f2fd
+    style OUTPUTS fill:#fff8e1
 ```
 
-```powershell
-# Compilacion Java sin ejecutar
-C:\maven\apache-maven-3.9.6\bin\mvn.cmd test-compile -Dfile.encoding=UTF-8
-# Resultado: BUILD SUCCESS
+---
+
+## Interfaz gráfica
+
+> Lanzador Tkinter para Windows — ejecuta ambas suites y muestra capturas en vivo.
+
+<!-- ════════════════════════════════════════════════════════════
+     SCREENSHOT DE LA INTERFAZ
+     Reemplaza esta línea con una imagen real de la GUI:
+     ![GUI Launcher](docs/screenshot_gui.png)
+     ════════════════════════════════════════════════════════════ -->
+
+```
+┌─────────────────────────────────────────────────────┐
+│          [  Insertar screenshot de la GUI  ]         │
+│                                                     │
+│   Ejecutar con:  gui\launcher.bat                   │
+└─────────────────────────────────────────────────────┘
 ```
 
-Limitaciones actuales:
+**Funciones principales:**
+- Botones de suite completa (Robot verde · Java azul)
+- Botones de ejecución rápida headless (Robot naranja · Java morado)
+- Consola con salida en tiempo real
+- Visor de capturas actualizadas durante la ejecución
+- Árbol de resultados recientes
 
-- `mvn` puede no estar en el PATH; los scripts buscan fallback en
-  `C:\maven\apache-maven-3.9.6\bin\mvn.cmd`.
-- Algunos tests dependen del estado del ambiente remoto (datos existentes, Redis activo).
-- `TC-TGN-001` esta etiquetado `smoke` pero crea tipos/generos en el ambiente.
+---
+
+## Stack tecnológico
+
+```mermaid
+flowchart LR
+    subgraph LOCAL["Ejecución local (Windows)"]
+        PY["Python 3.9+"]
+        JDK["Java JDK 11+"]
+        MVN["Apache Maven 3.8+"]
+        CHR["Google Chrome 120+"]
+    end
+
+    subgraph DOCKER["Ejecución en Docker (cualquier SO)"]
+        D1["python:3.11-slim\n+ Chrome + Robot Framework"]
+        D2["eclipse-temurin:11\n+ Maven 3.9.6 + Chrome"]
+    end
+
+    subgraph LIBS_RF["Robot Framework"]
+        RF["robotframework 6+"]
+        SEL["SeleniumLibrary 6+"]
+        SCR["ScreenCapLibrary"]
+        WDM1["webdriver-manager"]
+        OCV["opencv-python-headless"]
+        OPX["openpyxl"]
+    end
+
+    subgraph LIBS_JV["Java"]
+        S4["Selenium 4.18.1"]
+        TNG["TestNG 7.9.0"]
+        WDM2["WebDriverManager 5.7.0"]
+        POI["Apache POI 5.2.5"]
+        EXT["ExtentReports 5.1.1"]
+    end
+
+    PY --> LIBS_RF
+    JDK --> LIBS_JV
+    MVN --> LIBS_JV
+    D1 --> LIBS_RF
+    D2 --> LIBS_JV
+
+    style DOCKER fill:#e3f2fd
+    style LOCAL fill:#e8f5e9
+```
+
+---
+
+## Flujo de ejecución de un test
+
+```mermaid
+sequenceDiagram
+    actor QA as Tester / CI
+    participant EXCEL as datos_prueba.xlsx
+    participant RF as Robot Framework
+    participant BR as Chrome (headless)
+    participant APP as Biblioteca Pro
+
+    QA->>EXCEL: generar_datos.py<br/>(timestamp único)
+    QA->>RF: robot --variable HEADLESS:true tests/
+    RF->>EXCEL: ExcelReader.py<br/>lee fila del caso
+    RF->>BR: Open Browser<br/>(SeleniumLibrary)
+    BR->>APP: GET /
+
+    loop Por cada paso del keyword
+        RF->>BR: Wait Until Element Visible
+        BR->>APP: acción (click, input, submit)
+        APP-->>BR: respuesta UI
+        BR-->>RF: elemento / texto / estado
+        RF->>RF: Tomar Captura (.png)
+    end
+
+    RF->>RF: Should Contain / Assert
+    RF-->>QA: PASS / FAIL + report.html
+```
+
+---
+
+## Datos de prueba
+
+El script `generar_datos.py` produce un Excel con **7 hojas** y un timestamp Unix
+único por ejecución — ninguna corrida contamina datos de otra.
+
+```mermaid
+pie title Distribución de casos por tipo
+    "Smoke (lectura rápida)" : 11
+    "Regresión (flujos completos)" : 18
+    "Validación (mensajes de error)" : 22
+    "Destructivo (CRUD real)" : 28
+```
+
+| Hoja | Casos | Tipo predominante |
+|---|:---:|---|
+| Login | 5 | Smoke + Validación |
+| Registro | 6 | Destructivo + Validación |
+| Catalogo | 7 | Destructivo + Validación |
+| TiposGeneros | 8 | Destructivo + Validación |
+| Dashboard | 5 | Smoke + Validación |
+| Usuarios | 4 | Smoke + Destructivo |
+| Precondiciones | 9 | Referencia QA (no usada por tests) |
+
+Estrategia anti-contaminación: todos los registros creados llevan prefijo
+`QA_AUTO_` + timestamp, identificables y borrables sin afectar datos reales.
+
+---
+
+## Cómo ejecutar
+
+### 🐳 Docker (recomendado)
+
+Funciona en Windows, macOS y Linux sin instalar Python, Java ni Maven.
+Solo se necesita **Docker Desktop**.
+
+```bash
+# Primera vez: construir imágenes (~5-10 min)
+docker compose build
+
+# Robot Framework — suite completa (43 tests)
+docker compose run --rm robot
+
+# Robot Framework — solo smoke (más rápido)
+docker compose run --rm robot-smoke
+
+# Java / TestNG — suite completa (36 tests)
+docker compose run --rm java
+```
+
+Variantes con parámetros:
+
+```bash
+# Solo tests destructivos
+docker compose run --rm -e TAGS=destructivo robot
+
+# Una suite específica
+docker compose run --rm -e SUITE=02_catalogo.robot robot
+
+# Una clase Java
+docker compose run --rm -e TEST_CLASS=AuthTests java
+```
+
+Los resultados quedan en la máquina host:
+
+| Stack | Ruta |
+|---|---|
+| Robot Framework | `robot/results/` |
+| Java / TestNG | `java/target/` |
+
+---
+
+### Robot Framework local
+
+**Prerequisitos:** Python 3.9+, Google Chrome 120+.
+
+```powershell
+# 1. Instalar dependencias (solo la primera vez)
+cd robot
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+
+# 2. Generar datos de prueba
+venv\Scripts\python.exe data\generar_datos.py
+
+# 3. Ejecutar
+cd ..
+robot\run_tests.bat                              # suite completa, browser visible
+set HEADLESS=true && robot\run_tests.bat         # sin ventana
+set TAGS=smoke && robot\run_tests.bat            # solo smoke
+set HEADLESS=true && set TAGS=smoke && robot\run_tests.bat
+```
+
+Variables de entorno disponibles:
+
+| Variable | Default | Descripción |
+|---|---|---|
+| `HEADLESS` | `false` | `true` → Chrome sin ventana (`--headless=new`) |
+| `RECORD_VIDEO` | `false` | `true` → graba `.avi` por suite |
+| `SUITE` | _(todos)_ | ruta a `.robot` específico (ej. `tests\02_catalogo.robot`) |
+| `TAGS` | _(todos)_ | filtro: `smoke`, `regresion`, `destructivo`, `validacion`, `HU-007`… |
+
+Reportes en `robot/results/logs/report.html`.
+
+---
+
+### Java / TestNG local
+
+**Prerequisitos:** Java JDK 11+, Apache Maven 3.8+, Google Chrome 120+.
+
+```powershell
+# Suite completa (browser visible)
+java\run_tests.bat
+
+# Headless (sin ventana)
+set HEADLESS=true && java\run_tests.bat
+
+# Una clase específica
+set TEST=AuthTests && java\run_tests.bat
+
+# Con Maven directamente
+cd java
+mvn test -Dheadless=true
+mvn test "-Dtest=AuthTests#tc_lgn_001_loginExitosoAdmin"
+```
+
+Variables de entorno:
+
+| Variable | Default | Descripción |
+|---|---|---|
+| `HEADLESS` | `false` | Activa `--headless=new` en ChromeOptions |
+| `TEST` | _(suite completa)_ | Nombre de clase Java, ej. `CatalogTests` |
+
+Reportes en `java/target/extent-reports/`.
+
+---
+
+### GUI Windows
+
+```powershell
+gui\launcher.bat
+```
+
+Abre el lanzador visual. No requiere configuración adicional si el entorno
+Python (`robot/venv`) ya fue creado.
+
+---
+
+## Cobertura de pruebas
+
+```mermaid
+flowchart LR
+    subgraph HU["Historias de Usuario"]
+        HU1["HU-001/002/003\nAutenticación y Registro"]
+        HU2["HU-006/007/008/009\nCatálogo"]
+        HU3["HU-010\nTipos y Géneros"]
+        HU4["HU-011\nDashboard"]
+        HU5["HU-004/005/013-016\nUsuarios y Roles"]
+    end
+
+    subgraph TOTALES["Totales"]
+        T1["10 casos\n8 en Java"]
+        T2["12 casos\n9 en Java"]
+        T3["5 casos\n5 en Java"]
+        T4["6 casos\n5 en Java"]
+        T5["10 casos\n9 en Java"]
+    end
+
+    HU1 --> T1
+    HU2 --> T2
+    HU3 --> T3
+    HU4 --> T4
+    HU5 --> T5
+
+    style T1 fill:#c8e6c9
+    style T2 fill:#bbdefb
+    style T3 fill:#ffe0b2
+    style T4 fill:#f3e5f5
+    style T5 fill:#fce4ec
+```
+
+**Leyenda:** S=Smoke · R=Regresión · V=Validación · D=Destructivo
+
+### Autenticación y Registro (HU-001 · HU-002 · HU-003)
+
+| TC | Descripción | Robot | Java | Tipo | D |
+|---|---|:---:|:---:|:---:|:---:|
+| TC-LGN-001 | Login exitoso admin → Panel Principal | ✓ | ✓ | S | |
+| TC-LGN-002 | Badge de rol visible tras login | ✓ | ✓ | R | |
+| TC-LGN-003 | Botón deshabilitado con campos vacíos | ✓ | ✓ | V | |
+| TC-LGN-004 | Toast de error con credenciales incorrectas | ✓ | ✓ | V | |
+| TC-LGN-005 | Data-driven: admin, lector, erróneas, vacías | ✓ | ✓ | R | |
+| TC-LGT-001 | Logout limpia localStorage, redirige a login | ✓ | ✓ | S | |
+| TC-LGT-002 | Ruta protegida redirige sin sesión activa | ✓ | ✓ | R | |
+| TC-REG-001 | Data-driven registro: éxito + errores validación | ✓ | ✓ | R | ✓ |
+| TC-REG-002 | Cédula solo acepta caracteres numéricos | ✓ | — | V | |
+| TC-REG-003 | Contraseña mínimo 6 caracteres | ✓ | — | V | |
+
+### Catálogo (HU-006 · HU-007 · HU-008 · HU-009)
+
+| TC | Descripción | Robot | Java | Tipo | D |
+|---|---|:---:|:---:|:---:|:---:|
+| TC-CAT-001 | Ver catálogo con skeletons de carga | ✓ | ✓ | S | |
+| TC-CAT-002 | Búsqueda tiempo real filtra título y autor | ✓ | ✓ | R | |
+| TC-CAT-003 | Búsqueda sin resultados muestra mensaje | ✓ | ✓ | V | |
+| TC-CAT-004 | Data-driven crear libro (éxito + duplicado) | ✓ | ✓ | R | ✓ |
+| TC-CAT-005 | Campos obligatorios vacíos muestran error | ✓ | ✓ | V | |
+| TC-CAT-006 | Año no numérico muestra error de validación | ✓ | — | V | |
+| TC-CAT-007 | Botón Crear muestra estado "Creando..." (UX) | ✓ | — | V | |
+| TC-CAT-008 | Data-driven editar libro | ✓ | ✓ | R | ✓ |
+| TC-CAT-009 | Libro en edición resaltado con borde verde | ✓ | —¹ | R | |
+| TC-CAT-010 | Cancelar edición vuelve al formulario creación | ✓ | ✓¹ | R | |
+| TC-CAT-011 | Eliminar libro: modal de confirmación aparece | ✓ | ✓ | S | |
+| TC-CAT-012 | Cancelar eliminación no borra el libro | ✓ | ✓ | R | |
+
+¹ Java usa TC-CAT-009 para el caso "Cancelar edición". El caso de resaltado visual no tiene equivalente en Java.
+
+### Tipos y Géneros (HU-010)
+
+| TC | Descripción | Robot | Java | Tipo | D |
+|---|---|:---:|:---:|:---:|:---:|
+| TC-TGN-001 | Data-driven agregar tipos y géneros | ✓ | ✓ | S* | ✓ |
+| TC-TGN-002 | Campo vacío muestra error obligatorio | ✓ | ✓ | V | |
+| TC-TGN-003 | Nombre duplicado case-insensitive muestra error | ✓ | ✓ | V | ✓ |
+| TC-TGN-004 | Editar tipo existente y actualizar | ✓ | ✓ | R | ✓ |
+| TC-TGN-005 | Eliminar tipo requiere confirmación modal | ✓ | ✓ | R | ✓ |
+
+\* TC-TGN-001 está etiquetado `smoke` pero crea datos en el ambiente.
+
+### Dashboard y Estadísticas (HU-011)
+
+| TC | Descripción | Robot | Java | Tipo | D |
+|---|---|:---:|:---:|:---:|:---:|
+| TC-DSH-001 | Dashboard accesible para admin | ✓ | ✓ | S | |
+| TC-DSH-002 | Data-driven generar gráfico con 4 filtros | ✓ | ✓ | R | |
+| TC-DSH-003 | Generar sin filtro muestra advertencia | ✓ | ✓ | V | |
+| TC-DSH-004 | Botón Sincronizar manual ejecuta sincronización | ✓ | ✓ | R | |
+| TC-DSH-005 | Botón Generar se deshabilita durante operación | ✓ | ✓ | V | |
+| TC-DSH-006 | Botón muestra "Sincronizando..." durante operación | ✓ | — | V | |
+
+### Usuarios y Roles (HU-004 · HU-005 · HU-013–016)
+
+| TC | Descripción | Robot | Java | Tipo | D |
+|---|---|:---:|:---:|:---:|:---:|
+| TC-USR-001 | Solo admin accede a pantalla de usuarios | ✓ | ✓ | S | |
+| TC-USR-002 | Lista muestra datos completos y badge de rol | ✓ | ✓ | R | |
+| TC-USR-003 | Skeletons animados durante carga | ✓ | —² | V | |
+| TC-USR-004 | Panel admin muestra tarjetas Usuarios y Redis | ✓ | ✓² | R | |
+| TC-USR-005 | Data-driven editar rol de usuario | ✓ | ✓ | R | ✓ |
+| TC-USR-006 | Edición inline, sin modal flotante | ✓ | ✓ | V | |
+| TC-USR-007 | Contraseña vacía en edición no modifica | ✓ | ✓ | V | |
+| TC-USR-008 | Eliminar usuario: modal aparece, se cancela | ✓ | ✓ | R | |
+| TC-USR-009 | Solo admin ve tarjeta Redis | ✓ | ✓ | R | |
+| TC-USR-010 | Limpiar Redis pide confirmación y muestra conteo | ✓ | ✓ | R | ✓ |
+
+² Java usa TC-USR-003 para el caso "Panel admin". El caso de skeletons no tiene equivalente en Java.
+
+### Resumen
+
+| Módulo | Robot | Java | Únicos |
+|---|:---:|:---:|:---:|
+| Autenticación y Registro | 10 | 8 | 10 |
+| Catálogo | 12 | 9 | 12 |
+| Tipos y Géneros | 5 | 5 | 5 |
+| Dashboard | 6 | 5 | 6 |
+| Usuarios y Roles | 10 | 9 | 10 |
+| **Total** | **43** | **36** | **43** |
+
+---
+
+## Artefactos y reportes
+
+```mermaid
+flowchart LR
+    subgraph RF_OUT["Robot Framework"]
+        R1["report.html\nresumen ejecutivo"]
+        R2["log.html\ntraza completa keyword"]
+        R3["output.xml\npara CI/CD"]
+        R4["screenshots/\n*.png por test"]
+        R5["videos/\n*.avi por suite"]
+    end
+
+    subgraph JV_OUT["Java / TestNG"]
+        J1["extent-reports/\nHTML interactivo"]
+        J2["surefire-reports/\nJUnit XML"]
+        J3["screenshots/\n*.png por clase"]
+        J4["videos/\n*.gif por test"]
+    end
+
+    RUN["Ejecución"] --> RF_OUT
+    RUN --> JV_OUT
+```
+
+| Artefacto | Robot | Java |
+|---|---|---|
+| Reporte principal | `robot/results/logs/report.html` | `java/target/extent-reports/` |
+| Log detallado | `robot/results/logs/log.html` | `java/target/surefire-reports/` |
+| Capturas | `robot/results/screenshots/` | `java/target/screenshots/` |
+| Video | `robot/results/videos/*.avi` | `java/target/videos/*.gif` |
+
+---
+
+## Limpieza
+
+```powershell
+# Windows
+clean.bat
+
+# Linux / macOS / Docker host
+bash clean.sh
+```
+
+Borra resultados, `java/target/` y cachés Python. **No toca** el código fuente ni el entorno virtual.
+
+Para regenerar el Excel después de limpiar:
+
+```powershell
+robot\venv\Scripts\python.exe robot\data\generar_datos.py
+Copy-Item robot\data\datos_prueba.xlsx java\src\test\resources\datos_prueba.xlsx -Force
+```
 
 ---
 
@@ -78,529 +545,53 @@ Limitaciones actuales:
 
 ```text
 test-roboframework/
-├── README.md
+├── .dockerignore
+├── .gitattributes
 ├── .gitignore
-├── clean.bat                   ← borra artefactos generados (Windows)
-├── clean.sh                    ← borra artefactos generados (Linux/macOS)
+├── clean.bat / clean.sh          ← limpieza de artefactos
+├── docker-compose.yml            ← servicios robot · robot-smoke · java
+│
+├── docker/
+│   ├── Dockerfile.robot          ← Python 3.11 + Chrome + Robot Framework
+│   ├── Dockerfile.java           ← multi-stage: Excel → Maven + JDK 11 + Chrome
+│   ├── entrypoint-robot.sh
+│   └── entrypoint-java.sh
 │
 ├── gui/
-│   ├── launcher.bat            ← abre la GUI (Windows)
-│   ├── launcher.py             ← interfaz tkinter
-│   └── logo.png
+│   ├── launcher.bat              ← abre la GUI (Windows)
+│   └── launcher.py              ← interfaz tkinter
 │
 ├── robot/
 │   ├── requirements.txt
-│   ├── run_tests.bat           ← ejecuta suite Robot (Windows)
-│   ├── run_tests.sh            ← ejecuta suite Robot (Linux/macOS)
+│   ├── run_tests.bat / .sh
 │   ├── data/
-│   │   ├── generar_datos.py    ← genera datos_prueba.xlsx con timestamp
-│   │   └── datos_prueba.xlsx   ← generado, no versionado
+│   │   ├── generar_datos.py      ← genera Excel con timestamp único
+│   │   └── datos_prueba.xlsx     ← generado, no versionado
 │   ├── resources/
-│   │   ├── variables.robot         ← URL, credenciales, localizadores
-│   │   ├── keywords_comunes.robot  ← keywords reutilizables
-│   │   └── ExcelReader.py          ← lector de hojas Excel
+│   │   ├── variables.robot       ← URL, credenciales, localizadores
+│   │   ├── keywords_comunes.robot
+│   │   ├── ExcelReader.py
+│   │   └── VideoRecorder.py      ← grabación XVID/AVI (reemplaza ScreenCapLibrary)
 │   ├── tests/
-│   │   ├── 01_autenticacion.robot  ← HU-001 HU-002 HU-003 (10 casos)
-│   │   ├── 02_catalogo.robot       ← HU-006 HU-007 HU-008 HU-009 (12 casos)
-│   │   ├── 03_tipos_generos.robot  ← HU-010 (5 casos)
-│   │   ├── 04_dashboard.robot      ← HU-011 (6 casos)
-│   │   └── 05_usuarios.robot       ← HU-004 HU-005 HU-013-016 (10 casos)
-│   └── results/                ← generado, no versionado
-│       ├── logs/               ← report.html, log.html, output.xml
-│       ├── screenshots/
-│       └── videos/
+│   │   ├── 01_autenticacion.robot
+│   │   ├── 02_catalogo.robot
+│   │   ├── 03_tipos_generos.robot
+│   │   ├── 04_dashboard.robot
+│   │   └── 05_usuarios.robot
+│   └── results/                  ← generado, no versionado
 │
 └── java/
     ├── pom.xml
-    ├── testng.xml              ← suite completa, headless=false
-    ├── testng-headless.xml     ← suite completa, headless=true
-    ├── run_tests.bat           ← ejecuta suite Java (Windows)
-    ├── run_tests.sh            ← ejecuta suite Java (Linux/macOS)
+    ├── testng.xml
+    ├── testng-headless.xml
+    ├── run_tests.bat / .sh
     └── src/
         ├── main/java/com/biblioteca/
-        │   ├── config/Config.java          ← URL, credenciales, rutas
-        │   └── pages/                      ← Page Objects: Login, Register,
-        │                                      Panel, Catalog, Dashboard, Users
+        │   ├── config/Config.java
+        │   └── pages/             ← Page Objects
         └── test/java/com/biblioteca/
-            ├── base/
-            │   ├── BaseTest.java           ← setup/teardown, headless, capturas
-            │   └── ExtentReportListener.java
-            ├── tests/
-            │   ├── AuthTests.java          ← 8 casos: HU-001 HU-002 HU-003
-            │   ├── CatalogTests.java       ← 9 casos: HU-006 HU-007 HU-008 HU-009
-            │   ├── DashboardTests.java     ← 5 casos: HU-011
-            │   ├── TypesGenresTests.java   ← 5 casos: HU-010
-            │   └── UsersTests.java         ← 9 casos: HU-004 HU-005 HU-013-016
-            └── utils/
-                ├── ExcelReader.java
-                ├── ScreenshotUtils.java
-                └── VideoRecorder.java
+            ├── base/BaseTest.java
+            ├── tests/             ← AuthTests · CatalogTests · DashboardTests
+            │                         TypesGenresTests · UsersTests
+            └── utils/             ← ExcelReader · ScreenshotUtils · VideoRecorder
 ```
-
-Directorios y archivos no versionados (cubiertos por `.gitignore`):
-
-- `robot/venv/`, `robot/results/`, `java/target/`
-- `robot/data/datos_prueba.xlsx`, `java/src/test/resources/datos_prueba.xlsx`
-- `**/__pycache__/`, `*.pyc`, `*.class`
-
----
-
-## Requisitos
-
-| Herramienta | Version | Uso |
-|---|---|---|
-| Google Chrome | 120+ | Navegador bajo prueba |
-| Python | 3.9+ | Robot Framework, Excel, GUI |
-| Java JDK | 11+ | Suite Selenium / TestNG |
-| Apache Maven | 3.8+ | Compilar y ejecutar Java |
-
-Maven no necesita estar en el PATH si existe en
-`C:\maven\apache-maven-3.9.6\bin\mvn.cmd`; los scripts lo detectan.
-
-### Dependencias Python
-
-```powershell
-cd robot
-python -m venv venv
-venv\Scripts\activate
-pip install -r requirements.txt
-```
-
-Paquetes instalados: `robotframework`, `robotframework-seleniumlibrary`,
-`robotframework-screencaplibrary`, `openpyxl`, `Pillow`, `webdriver-manager`,
-`opencv-python`.
-
-### Dependencias Java
-
-Maven descarga todo desde `java/pom.xml` en la primera ejecucion.
-
-| Libreria | Version |
-|---|---|
-| Selenium | 4.18.1 |
-| TestNG | 7.9.0 |
-| WebDriverManager | 5.7.0 |
-| Apache POI | 5.2.5 |
-| ExtentReports | 5.1.1 |
-
----
-
-## Datos de prueba
-
-El archivo `datos_prueba.xlsx` se genera con:
-
-```powershell
-robot\venv\Scripts\python.exe robot\data\generar_datos.py
-```
-
-Luego copiar a Java:
-
-```powershell
-Copy-Item robot\data\datos_prueba.xlsx java\src\test\resources\datos_prueba.xlsx -Force
-```
-
-Los scripts `run_tests.bat` hacen esto automaticamente si el archivo no existe.
-
-### Hojas del Excel
-
-| Hoja | Filas | Contenido |
-|---|---:|---|
-| `Login` | 5 | Admin exito, lector exito, credenciales erroneas, campos vacios |
-| `Registro` | 6 | Exito con email unico, duplicado, cedula invalida, campos vacios |
-| `Catalogo` | 7 | Crear/editar con titulos `QA_AUTO_CAT_<ts>_...` |
-| `TiposGeneros` | 8 | Agregar/editar con nombres `QA_Tipo_<ts>` |
-| `Dashboard` | 5 | Filtros tipo, genero, autor, year |
-| `Usuarios` | 4 | Edicion de rol admin/lector |
-| `Precondiciones` | 9 | Requisitos previos documentados por suite |
-
-Cada fila incluye columnas `tipo_prueba` (smoke / regresion / destructivo /
-validacion) y `precondicion` para trazabilidad.
-
-### Credencial admin
-
-| Rol | Email | Password |
-|---|---|---|
-| admin | `migueltroll789@gmail.com` | `123456` |
-
-Configurada en `robot/resources/variables.robot` y
-`java/src/main/java/com/biblioteca/config/Config.java`.
-
----
-
-## Ejecucion Robot Framework
-
-### Con el script (recomendado)
-
-El script crea el `venv`, instala dependencias y genera el Excel si no existen.
-
-```powershell
-# Suite completa, modo visual
-robot\run_tests.bat
-
-# Headless (sin ventana)
-set HEADLESS=true && robot\run_tests.bat
-
-# Solo smoke
-set TAGS=smoke && robot\run_tests.bat
-
-# Headless + solo smoke
-set HEADLESS=true && set TAGS=smoke && robot\run_tests.bat
-
-# Una sola suite
-set SUITE=tests\02_catalogo.robot && robot\run_tests.bat
-```
-
-Variables de entorno:
-
-| Variable | Default | Descripcion |
-|---|---|---|
-| `HEADLESS` | `false` | `true` activa Chrome headless |
-| `RECORD_VIDEO` | `false` | `true` graba GIF por test |
-| `SUITE` | `tests` | ruta relativa a archivo `.robot` o directorio |
-| `TAGS` | _(todos)_ | filtro por tag; ver tabla mas abajo |
-
-### Con robot.exe directamente
-
-```powershell
-robot\venv\Scripts\robot.exe `
-  --pythonpath robot\resources `
-  --outputdir  robot\results\logs `
-  --variable   HEADLESS:false `
-  --variable   RECORD_VIDEO:false `
-  robot\tests
-```
-
-### Dry-run (sintaxis sin navegador)
-
-```powershell
-robot\venv\Scripts\robot.exe `
-  --dryrun `
-  --pythonpath robot\resources `
-  --outputdir  robot\results\dryrun `
-  robot\tests
-```
-
-### Tags disponibles en Robot
-
-| Tag | Descripcion |
-|---|---|
-| `smoke` | 7 casos de verificacion rapida (ver nota en matriz) |
-| `data-driven` | Casos que leen multiples filas del Excel |
-| `validacion` | Campos, mensajes de error, estados de UI |
-| `ux` | Feedback visual: skeletons, botones disabled, estados de carga |
-| `flujo-alternativo` | Caminos no exitosos |
-| `login` `logout` `registro` | Autenticacion |
-| `catalogo` `busqueda` `creacion` `edicion` `eliminacion` | Catalogo |
-| `tipos-generos` | Tipos y generos |
-| `dashboard` `sincronizacion` | Dashboard |
-| `usuarios` `roles` `redis` | Usuarios |
-| `HU-001` ... `HU-016` | Filtrar por historia de usuario |
-
-Reportes en `robot/results/logs/`.
-
----
-
-## Ejecucion Java Selenium
-
-### Con el script (recomendado)
-
-```powershell
-# Suite completa
-java\run_tests.bat
-
-# Headless
-set HEADLESS=true && java\run_tests.bat
-
-# Una clase
-set TEST=AuthTests && java\run_tests.bat
-
-# Una clase en headless
-set HEADLESS=true && set TEST=DashboardTests && java\run_tests.bat
-```
-
-Variables de entorno:
-
-| Variable | Default | Descripcion |
-|---|---|---|
-| `HEADLESS` | `false` | `true` aplica `--headless=new` en ChromeOptions |
-| `TEST` | _(suite completa)_ | nombre de clase Java, ej. `AuthTests` |
-
-### Con Maven directamente
-
-```powershell
-cd java
-
-# Suite completa
-mvn test
-
-# Headless (-Dheadless=true tiene prioridad sobre testng.xml)
-mvn test -Dheadless=true
-
-# Una clase
-mvn test -Dtest=AuthTests
-
-# Un metodo especifico
-mvn test "-Dtest=AuthTests#tc_lgn_001_loginExitosoAdmin"
-
-# Compilar sin ejecutar
-mvn test-compile -Dfile.encoding=UTF-8
-```
-
-Si `mvn` no esta en el PATH:
-
-```powershell
-C:\maven\apache-maven-3.9.6\bin\mvn.cmd test -Dheadless=true
-```
-
-### Headless en Java
-
-`BaseTest.java` resuelve el modo con un campo `static volatile boolean headlessMode`.
-
-Prioridad: `-Dheadless=true` (argumento Maven) > parametro en `testng.xml` > default `false`.
-
-Con `headless=true` aplica: `--headless=new`, `--window-size=1366,900`,
-`--disable-gpu`, `--no-sandbox`, `--disable-dev-shm-usage`.
-
-Reportes en `java/target/extent-reports/` y `java/target/surefire-reports/`.
-
----
-
-## GUI de ejecucion
-
-Solo Windows. Requiere Python con Pillow instalado (el script lo instala).
-
-```powershell
-gui\launcher.bat
-```
-
-La GUI ofrece:
-
-- Panel izquierdo: botones Ejecutar Robot / Ejecutar Java, consola en tiempo real.
-- Panel derecho: visor de capturas actualizadas durante la ejecucion.
-- Busca Maven en PATH o en `C:\maven\apache-maven-3.9.6\bin\mvn.cmd`.
-- Ejecuta en modo visual (no pasa HEADLESS ni TAGS).
-
----
-
-## Limpieza de artefactos
-
-```powershell
-# Windows
-clean.bat
-
-# Linux / macOS
-bash clean.sh
-```
-
-Borra: `robot/results/` (logs, screenshots, videos, dryrun), `java/target/`,
-`__pycache__/`, `*.pyc`.
-
-Conserva: `robot/venv/`, Excel generado, todo el codigo fuente.
-
-### Regenerar el Excel
-
-```powershell
-robot\venv\Scripts\python.exe robot\data\generar_datos.py
-Copy-Item robot\data\datos_prueba.xlsx java\src\test\resources\datos_prueba.xlsx -Force
-```
-
-### Recrear el entorno Python desde cero
-
-```powershell
-cd robot
-Remove-Item venv -Recurse -Force
-python -m venv venv
-venv\Scripts\activate
-pip install -r requirements.txt
-```
-
----
-
-## Matriz de cobertura
-
-Abreviaturas: **S**=smoke · **R**=regresion · **V**=validacion · **D**=destructivo
-(el test crea, edita o elimina datos en el ambiente remoto).
-
-### HU-001 · HU-002 · HU-003 — Autenticacion y Registro
-
-| TC | Descripcion | Robot | Java | Tipo | D |
-|---|---|:---:|:---:|:---:|:---:|
-| TC-LGN-001 | Login exitoso admin → Panel Principal | ✓ | ✓ | S | |
-| TC-LGN-002 | Badge de rol visible tras login | ✓ | ✓ | R | |
-| TC-LGN-003 | Boton deshabilitado con campos vacios | ✓ | ✓ | V | |
-| TC-LGN-004 | Toast de error con credenciales incorrectas | ✓ | ✓ | V | |
-| TC-LGN-005 | Data-driven: admin, lector, erroneas, vacias | ✓ | ✓ | R | |
-| TC-LGT-001 | Logout limpia localStorage, redirige a login | ✓ | ✓ | S | |
-| TC-LGT-002 | Ruta protegida redirige sin sesion activa | ✓ | ✓ | R | |
-| TC-REG-001 | Data-driven registro: exito + errores validacion | ✓ | ✓ | R | Si |
-| TC-REG-002 | Cedula solo acepta caracteres numericos | ✓ | — | V | |
-| TC-REG-003 | Contrasena minimo 6 caracteres | ✓ | — | V | |
-
-### HU-006 · HU-007 · HU-008 · HU-009 — Catalogo de libros
-
-| TC | Descripcion | Robot | Java | Tipo | D |
-|---|---|:---:|:---:|:---:|:---:|
-| TC-CAT-001 | Ver catalogo con skeletons de carga | ✓ | ✓ | S | |
-| TC-CAT-002 | Busqueda tiempo real filtra titulo y autor | ✓ | ✓ | R | |
-| TC-CAT-003 | Busqueda sin resultados muestra mensaje | ✓ | ✓ | V | |
-| TC-CAT-004 | Data-driven crear libro (exito + duplicado) | ✓ | ✓ | R | Si |
-| TC-CAT-005 | Campos obligatorios vacios muestran error rojo | ✓ | ✓ | V | |
-| TC-CAT-006 | Ano no numerico muestra error de validacion | ✓ | — | V | |
-| TC-CAT-007 | Boton Crear muestra estado "Creando..." (UX) | ✓ | — | V | |
-| TC-CAT-008 | Data-driven editar libro | ✓ | ✓ | R | Si |
-| TC-CAT-009 | Libro en edicion resaltado con borde verde (UX) | ✓ | —¹ | R | |
-| TC-CAT-010 | Cancelar edicion vuelve a formulario creacion | ✓ | ✓¹ | R | |
-| TC-CAT-011 | Eliminar libro: modal de confirmacion aparece | ✓ | ✓ | S | |
-| TC-CAT-012 | Cancelar eliminacion no borra el libro | ✓ | ✓ | R | |
-
-¹ Java `CatalogTests` usa el ID TC-CAT-009 para el caso "Cancelar edicion"
-  (equivalente al Robot TC-CAT-010). El caso de resaltado visual no tiene
-  equivalente en Java.
-
-### HU-010 — Tipos y Generos
-
-| TC | Descripcion | Robot | Java | Tipo | D |
-|---|---|:---:|:---:|:---:|:---:|
-| TC-TGN-001 | Data-driven agregar tipos y generos | ✓ | ✓ | S* | Si |
-| TC-TGN-002 | Campo vacio muestra error obligatorio | ✓ | ✓ | V | |
-| TC-TGN-003 | Nombre duplicado case-insensitive muestra error | ✓ | ✓ | V | Si |
-| TC-TGN-004 | Editar tipo existente y actualizar | ✓ | ✓ | R | Si |
-| TC-TGN-005 | Eliminar tipo requiere confirmacion modal | ✓ | ✓ | R | Si |
-
-\* TC-TGN-001 esta etiquetado `smoke` pero crea datos en el ambiente.
-
-### HU-011 — Dashboard y Estadisticas
-
-| TC | Descripcion | Robot | Java | Tipo | D |
-|---|---|:---:|:---:|:---:|:---:|
-| TC-DSH-001 | Dashboard accesible para admin | ✓ | ✓ | S | |
-| TC-DSH-002 | Data-driven generar grafico con 4 filtros | ✓ | ✓ | R | |
-| TC-DSH-003 | Generar sin filtro muestra advertencia | ✓ | ✓ | V | |
-| TC-DSH-004 | Boton Sincronizar manual ejecuta sincronizacion | ✓ | ✓ | R | |
-| TC-DSH-005 | Boton Generar se deshabilita durante operacion | ✓ | ✓ | V | |
-| TC-DSH-006 | Boton muestra "Sincronizando..." durante operacion | ✓ | — | V | |
-
-### HU-004 · HU-005 · HU-013 · HU-014 · HU-015 · HU-016 — Usuarios y Roles
-
-| TC | Descripcion | Robot | Java | Tipo | D |
-|---|---|:---:|:---:|:---:|:---:|
-| TC-USR-001 | Solo admin accede a pantalla de usuarios | ✓ | ✓ | S | |
-| TC-USR-002 | Lista muestra datos completos y badge de rol | ✓ | ✓ | R | |
-| TC-USR-003 | Skeletons animados durante carga | ✓ | —² | V | |
-| TC-USR-004 | Panel admin muestra tarjetas Usuarios y Redis | ✓ | ✓² | R | |
-| TC-USR-005 | Data-driven editar rol de usuario | ✓ | ✓ | R | Si |
-| TC-USR-006 | Edicion inline, sin modal flotante | ✓ | ✓ | V | |
-| TC-USR-007 | Contrasena vacia en edicion no modifica | ✓ | ✓ | V | |
-| TC-USR-008 | Eliminar usuario: modal aparece, se cancela | ✓ | ✓ | R | |
-| TC-USR-009 | Solo admin ve tarjeta Redis | ✓ | ✓ | R | |
-| TC-USR-010 | Limpiar Redis pide confirmacion y muestra conteo | ✓ | ✓ | R | Si |
-
-² Java `UsersTests` usa TC-USR-003 para el caso "Panel admin" (equivalente al
-  Robot TC-USR-004). El caso de skeletons no tiene equivalente en Java.
-
-### Resumen de cobertura
-
-| Area | Robot | Java | Casos unicos |
-|---|:---:|:---:|:---:|
-| Autenticacion y Registro | 10 | 8 | 10 |
-| Catalogo | 12 | 9 | 12 |
-| Tipos y Generos | 5 | 5 | 5 |
-| Dashboard | 6 | 5 | 6 |
-| Usuarios y Roles | 10 | 9 | 10 |
-| **Total** | **43** | **36** | **43** |
-
----
-
-## Evidencias y reportes
-
-### Robot Framework
-
-| Artefacto | Ruta |
-|---|---|
-| Reporte HTML | `robot/results/logs/report.html` |
-| Log detallado | `robot/results/logs/log.html` |
-| Output XML (CI) | `robot/results/logs/output.xml` |
-| Capturas PNG | `robot/results/screenshots/` |
-| Videos GIF | `robot/results/videos/` |
-
-### Java / TestNG
-
-| Artefacto | Ruta |
-|---|---|
-| ExtentReports HTML | `java/target/extent-reports/` |
-| Surefire JUnit XML | `java/target/surefire-reports/` |
-| Capturas PNG | `java/target/screenshots/<clase>/<paso>.png` |
-| Videos GIF | `java/target/videos/<test>_<fecha>.gif` |
-
-Todos estos directorios estan en `.gitignore`.
-
----
-
-## Buenas practicas
-
-### Localizadores
-
-Robot centraliza todos en `robot/resources/variables.robot`.
-
-Java usa Page Objects en `java/src/main/java/com/biblioteca/pages/`.
-
-La aplicacion idealmente deberia exponer atributos `data-testid` en botones,
-formularios, modales y toasts para localizadores mas estables.
-
-### Esperas
-
-Priorizar esperas explicitas (elemento visible, URL, toast presente, boton
-habilitado/deshabilitado). Evitar `Sleep` y `Thread.sleep` sin condicion previa.
-
-### Assertions
-
-Cada caso debe tener al menos un `Assert.*` o keyword de verificacion que
-falle el test si el criterio no se cumple.
-
-`testFailureIgnore=false` en `pom.xml` garantiza BUILD FAILURE cuando un test falla.
-
-### Datos
-
-Los registros creados en el ambiente usan prefijo `QA_AUTO_` + timestamp Unix
-para no colisionar con datos reales y poder identificarse facilmente.
-
-- Smoke: sin escritura (excepto TC-TGN-001, pendiente revisar).
-- Regresion: puede crear y modificar datos QA.
-- Destructivo: crea, modifica o elimina datos; requiere ambiente controlado.
-
----
-
-## Mejoras pendientes
-
-Prioridad media:
-
-- Reemplazar `Sleep` en Robot y `Thread.sleep` en Java por esperas explicitas.
-- Agregar `data-testid` en la aplicacion para localizadores mas estables.
-- GUI: permitir seleccionar HEADLESS, TAGS y SUITE desde la interfaz.
-- GUI: leer screenshots Java de forma recursiva (actualmente solo un nivel).
-- Workflow CI: dry-run Robot + compilacion Java + smoke headless en GitHub Actions.
-
-Prioridad baja:
-
-- Agregar TC-REG-002 y TC-REG-003 a `AuthTests.java`.
-- Agregar TC-CAT-006, TC-CAT-007 y TC-CAT-009 (visual) a `CatalogTests.java`.
-- Agregar TC-DSH-006 a `DashboardTests.java`.
-- Revisar el tag `smoke` de TC-TGN-001 (crea datos).
-- Parametrizar credenciales admin via variable de entorno para CI seguro.
-- Agregar matriz de trazabilidad exportable (HU → TC → evidencia).
-
----
-
-## Criterio de base QA defendible
-
-El proyecto es una base QA defendible cuando:
-
-- Cualquier persona instala dependencias ejecutando `run_tests.bat` y corre
-  smoke sin pasos adicionales.
-- Un fallo real en un assertion produce BUILD FAILURE en Maven y FAIL en Robot.
-- El smoke no modifica datos del ambiente (excepcion actual: TC-TGN-001).
-- Las pruebas destructivas usan datos `QA_AUTO_<ts>` que no colisionan con
-  datos reales.
-- Cada historia tiene casos trazables y evidencias en las rutas documentadas.
-- Los datos son reproducibles: `generar_datos.py` genera un Excel con timestamp
-  fresco en cada ejecucion.
-- La suite corre en modo headless con `HEADLESS=true` o `mvn test -Dheadless=true`.

@@ -1,0 +1,49 @@
+version: "3.9"
+
+# ── Shared SHM size (prevents Chrome from crashing in Docker) ─────────────────
+x-shm: &shm
+  shm_size: "256m"
+
+services:
+
+  # ── Robot Framework: suite completa headless ──────────────────────────────
+  robot:
+    <<: *shm
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.robot
+    volumes:
+      - ./robot/results:/app/robot/results
+    environment:
+      HEADLESS: "true"
+      RECORD_VIDEO: "false"
+      LOGLEVEL: "INFO"
+      TAGS: ""
+      SUITE: ""
+
+  # ── Robot Framework: solo tests marcados con @smoke ───────────────────────
+  robot-smoke:
+    <<: *shm
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.robot
+    volumes:
+      - ./robot/results:/app/robot/results
+    environment:
+      HEADLESS: "true"
+      RECORD_VIDEO: "false"
+      LOGLEVEL: "WARN"
+      TAGS: "smoke"
+      SUITE: ""
+
+  # ── Java / TestNG: suite completa headless ────────────────────────────────
+  java:
+    <<: *shm
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.java
+    volumes:
+      - ./java/target:/app/java/target
+    environment:
+      TESTNG_FILE: "testng.xml"
+      TEST_CLASS: ""

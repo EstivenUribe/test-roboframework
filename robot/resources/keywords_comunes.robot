@@ -2,6 +2,7 @@
 Library     SeleniumLibrary     timeout=25s    implicit_wait=0
 Library     ScreenCapLibrary
 Library     ${CURDIR}/ExcelReader.py
+Library     ${CURDIR}/VideoRecorder.py
 Library     OperatingSystem
 Library     Collections
 Library     String
@@ -15,7 +16,7 @@ Resource    variables.robot
 # ═══════════════════════════════════════════════════════════════════════════
 
 Suite Setup Con Video
-    [Documentation]    Abre navegador, inicia grabación de video y carga Excel.
+    [Documentation]    Abre navegador, inicia grabación de video (.avi) y carga Excel.
     [Arguments]    ${alias_video}=suite_video
     Create Directory    ${SCREENSHOTS_DIR}
     Create Directory    ${VIDEOS_DIR}
@@ -25,21 +26,22 @@ Suite Setup Con Video
     ${grabar_video}=    Convert To Boolean    ${RECORD_VIDEO}
     IF    ${grabar_video}
         ${ts}=    Get Current Date    result_format=%Y%m%d_%H%M%S
-        Start Video Recording
-        ...    alias=${alias_video}
-        ...    name=${VIDEOS_DIR}/${alias_video}_${ts}
+        ${ruta}=    Start Recording
+        ...    path=${VIDEOS_DIR}/${alias_video}_${ts}
         ...    fps=10
         ...    size_percentage=0.75
+        Log    Grabación iniciada: ${ruta}
     ELSE
-        Log    Grabación de video desactivada. Use --variable RECORD_VIDEO:true para activarla.
+        Log    Grabación de video desactivada. Usa --variable RECORD_VIDEO:true para activarla.
     END
 
 Suite Teardown Con Video
-    [Documentation]    Detiene grabación y cierra el navegador.
+    [Documentation]    Detiene grabación (.avi) y cierra el navegador.
     [Arguments]    ${alias_video}=suite_video
     ${grabar_video}=    Convert To Boolean    ${RECORD_VIDEO}
     IF    ${grabar_video}
-        Run Keyword And Ignore Error    Stop Video Recording    alias=${alias_video}
+        ${ruta}=    Stop Recording
+        Log    Video guardado: ${ruta}
     END
     Close All Browsers
 
