@@ -139,7 +139,11 @@ public class TypesGenresTests extends BaseTest {
     // ── helpers ──────────────────────────────────────────────────────────
 
     private void click(By by) {
-        driver.findElement(by).click();
+        new org.openqa.selenium.support.ui.WebDriverWait(
+                driver,
+                java.time.Duration.ofSeconds(com.biblioteca.config.Config.TIMEOUT_EXPLICIT))
+            .until(org.openqa.selenium.support.ui.ExpectedConditions.elementToBeClickable(by))
+            .click();
     }
 
     private boolean toastContains(String text) {

@@ -38,7 +38,7 @@ TC-DSH-002 Generar gráfico data-driven con todos los filtros del Excel
             Seleccionar Opcion En Select    ${LOC_DASH_FILTRO}    ${fila}[filtro]
             Wait Until Element Is Enabled    ${LOC_DASH_BTN_GENERAR}    ${TIMEOUT}
             Click Element    ${LOC_DASH_BTN_GENERAR}
-            Sleep    3s
+            Wait Until Element Is Visible    ${LOC_DASH_GRAFICO}    15s
             Tomar Captura    ${fila}[id_caso]_grafico_${fila}[filtro]
             Element Should Be Visible    ${LOC_DASH_GRAFICO}
         END
@@ -65,7 +65,7 @@ TC-DSH-004 Botón Sincronizar manual actualiza datos
     Wait Until Element Is Visible    ${LOC_DASH_BTN_SYNC}    ${TIMEOUT}
     Tomar Captura    TC-DSH-004_antes_sync
     Click Element    ${LOC_DASH_BTN_SYNC}
-    Sleep    3s
+    Wait Until Element Is Enabled    ${LOC_DASH_BTN_SYNC}    20s
     Tomar Captura    TC-DSH-004_despues_sync
     Log    Sincronización manual ejecutada correctamente
 
@@ -80,7 +80,7 @@ TC-DSH-005 Botón Generar deshabilitado durante la generación
     ${disabled}=    Run Keyword And Ignore Error
     ...    Element Should Be Disabled    ${LOC_DASH_BTN_GENERAR}
     Tomar Captura    TC-DSH-005_boton_deshabilitado_durante_generacion
-    Sleep    3s
+    Wait Until Element Is Visible    ${LOC_DASH_GRAFICO}    15s
 
 TC-DSH-006 Botón muestra Sincronizando durante la operación
     [Documentation]    HU-011 · Criterio: "Sincronizando…" visible durante proceso.

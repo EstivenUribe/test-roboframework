@@ -5,7 +5,6 @@
      Requiere descomentar --headless=new en BaseTest.java para efecto real. -->
 <suite name="Biblioteca Pro — Headless Suite" verbose="1" parallel="false">
 
-    <parameter name="baseUrl"   value="https://biblioteca-front-end-1satou1s-projects.vercel.app"/>
     <parameter name="browser"   value="chrome"/>
     <parameter name="headless"  value="true"/>
 

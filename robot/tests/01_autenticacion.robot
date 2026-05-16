@@ -126,7 +126,7 @@ TC-REG-001 Registro data-driven con todos los escenarios del Excel
 TC-REG-002 Cédula solo acepta caracteres numéricos
     [Documentation]    HU-001 · Flujo Alt paso 9.
     [Tags]    registro    validacion    HU-001
-    ${datos}=    Obtener Fila Por Caso    Registro    TC-REG-003
+    ${datos}=    Obtener Fila Por Caso    Registro    TC-REG-002
     Ir A Login
     Click Element    ${LOC_LINK_CREAR_CUENTA}
     Wait Until Element Is Visible    ${LOC_REG_CEDULA}    ${TIMEOUT}
@@ -137,7 +137,7 @@ TC-REG-002 Cédula solo acepta caracteres numéricos
 TC-REG-003 Contraseña mínimo 6 caracteres
     [Documentation]    HU-001 · Flujo Alt paso 10.
     [Tags]    registro    validacion    HU-001
-    ${datos}=    Obtener Fila Por Caso    Registro    TC-REG-004
+    ${datos}=    Obtener Fila Por Caso    Registro    TC-REG-003
     Ir A Login
     Click Element    ${LOC_LINK_CREAR_CUENTA}
     Wait Until Element Is Visible    ${LOC_REG_PASS}    ${TIMEOUT}

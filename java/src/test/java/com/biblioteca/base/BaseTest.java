@@ -153,6 +153,12 @@ public abstract class BaseTest {
         // Detener video
         video.stop();
 
+        // Cerrar Excel
+        if (excel != null) {
+            try { excel.close(); } catch (java.io.IOException ignored) {}
+            excel = null;
+        }
+
         // Cerrar driver
         if (driver != null) {
             driver.quit();

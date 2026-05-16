@@ -38,7 +38,7 @@ TC-CAT-002 Búsqueda en tiempo real filtra por título y autor
     ...    Wait Until Element Is Visible    ${LOC_CAT_BUSQUEDA}    5s
     Skip If    not ${busqueda_disponible}    El catálogo actual no expone buscador visible.
     Limpiar Y Escribir    ${LOC_CAT_BUSQUEDA}    ${datos}[termino_busqueda]
-    Sleep    1s
+    Sleep    0.5s
     Tomar Captura    TC-CAT-002_resultados_busqueda
     ${texto_pagina}=    Get Text    xpath=//body
     Log    Resultados visibles en página: ${texto_pagina[:200]}
@@ -52,7 +52,7 @@ TC-CAT-003 Búsqueda sin resultados muestra mensaje adecuado
     ...    Wait Until Element Is Visible    ${LOC_CAT_BUSQUEDA}    5s
     Skip If    not ${busqueda_disponible}    El catálogo actual no expone buscador visible.
     Limpiar Y Escribir    ${LOC_CAT_BUSQUEDA}    XXXXXXXXXNOTEXISTS99999
-    Sleep    1s
+    Sleep    0.5s
     Tomar Captura    TC-CAT-003_sin_resultados
     Page Should Contain    Sin resultados
 

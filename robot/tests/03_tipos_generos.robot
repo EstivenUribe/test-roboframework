@@ -65,7 +65,7 @@ TC-TGN-003 Nombre duplicado muestra mensaje de duplicado
     Wait Until Element Is Visible    ${LOC_TG_INPUT_TIPO}    ${TIMEOUT}
     Limpiar Y Escribir    ${LOC_TG_INPUT_TIPO}    ${datos}[nombre]
     Click Element    xpath=(//button[contains(text(),'Agregar')])[1]
-    Sleep    1s
+    Wait Until Element Is Visible    ${LOC_TOAST}    12s
     Limpiar Y Escribir    ${LOC_TG_INPUT_TIPO}    ${datos}[nombre_duplicado]
     Click Element    xpath=(//button[contains(text(),'Agregar')])[1]
     Tomar Captura    TC-TGN-003_duplicado

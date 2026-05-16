@@ -70,6 +70,6 @@ ${LOC_USR_SELECT_ROL}   xpath=//select[@name='rol' or @name='role'] | //select[c
 
 # ─── Localizadores: Mensajes ─────────────────────────────────────────────────
 ${LOC_TOAST}            xpath=//*[contains(@class,'toast') or contains(@class,'alert') or contains(@class,'notification') or contains(@class,'Toastify')]
-${LOC_MODAL_CONFIRMAR}  xpath=//button[contains(text(),'Sí') or contains(text(),'Confirmar') or contains(text(),'eliminar')]
+${LOC_MODAL_CONFIRMAR}  xpath=//button[contains(text(),'Sí') or contains(text(),'Confirmar')]
 ${LOC_MODAL_CANCELAR}   xpath=//button[contains(text(),'Cancelar') or contains(text(),'No')]
 ${LOC_ERROR_MSG}        xpath=//*[contains(@class,'error') or contains(@class,'invalid') or contains(@class,'danger') or contains(normalize-space(.),'obligatorio') or contains(normalize-space(.),'inválido') or contains(normalize-space(.),'número')][string-length(normalize-space(.))>0]
