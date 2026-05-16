@@ -35,7 +35,10 @@ if %ERRORLEVEL% neq 0 (
 
 REM ── Lanzar GUI ────────────────────────────────────────────────────────────
 echo [INFO] Iniciando interfaz grafica...
-start "" pythonw "%~dp0launcher.py"
-if %ERRORLEVEL% neq 0 (
-    python "%~dp0launcher.py"
+where pythonw >nul 2>&1
+if %ERRORLEVEL% equ 0 (
+    start "" pythonw "%~dp0launcher.py"
+) else (
+    start "" python "%~dp0launcher.py"
 )
+exit /b 0

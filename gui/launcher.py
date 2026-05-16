@@ -30,6 +30,7 @@ SS_JAV  = JAVA  / "target"  / "screenshots"
 REP_RF  = ROBOT / "results" / "logs" / "report.html"
 REP_JAV = JAVA  / "target"  / "extent-reports"
 LOGO_PATH = GUI_DIR / "logo.png"
+LOGO_MAX_SIZE = (300, 92)
 
 MAVEN_FALLBACK = Path(r"C:\maven\apache-maven-3.9.6\bin\mvn.cmd")
 
@@ -106,7 +107,7 @@ class App(tk.Tk):
         self.title("Biblioteca Pro — Test Launcher · Politécnico Colombiano")
         self.configure(bg=C_BG)
         self.resizable(True, True)
-        self.minsize(960, 640)
+        self.minsize(1120, 700)
 
         self._proc: subprocess.Popen | None = None
         self._running    = False
@@ -115,9 +116,10 @@ class App(tk.Tk):
         self._ss_index  = 0
         self._ss_paths  : list[str] = []
         self._ss_source = "rf"
+        self.var_record_video = tk.BooleanVar(value=False)
 
         self._build_ui()
-        self.geometry("1280x780")
+        self.geometry("1360x820")
         self.after(500, self._poll_screenshots)
 
     # ── UI principal ──────────────────────────────────────────────────────────
@@ -145,25 +147,16 @@ class App(tk.Tk):
     # ── Header institucional ──────────────────────────────────────────────────
 
     def _build_header(self):
-        header = tk.Frame(self, bg=C_HEADER, height=90)
+        header = tk.Frame(self, bg=C_HEADER, height=118)
         header.pack(fill="x")
         header.pack_propagate(False)
 
         # ─ Lado izquierdo: logo ───────────────────────────────────────────────
-        logo_frame = tk.Frame(header, bg=C_HEADER)
-        logo_frame.pack(side="left", padx=(16, 8), pady=8)
+        logo_frame = tk.Frame(header, bg=C_HEADER, width=315, height=100)
+        logo_frame.pack(side="left", padx=(16, 8), pady=8, fill="y")
+        logo_frame.pack_propagate(False)
 
-        logo_loaded = False
-        if PIL_OK and LOGO_PATH.exists():
-            try:
-                img = Image.open(LOGO_PATH)
-                img.thumbnail((220, 74), Image.LANCZOS)
-                self._logo_img = ImageTk.PhotoImage(img)
-                tk.Label(logo_frame, image=self._logo_img,
-                         bg=C_HEADER).pack()
-                logo_loaded = True
-            except Exception:
-                pass
+        logo_loaded = self._load_logo(logo_frame)
 
         if not logo_loaded:
             # Fallback de texto con escudo en ASCII
@@ -207,12 +200,12 @@ class App(tk.Tk):
             side="left", fill="y", pady=12, padx=8)
 
         # ─ Lado derecho: info académica ───────────────────────────────────────
-        right = tk.Frame(header, bg=C_HEADER)
+        right = tk.Frame(header, bg=C_HEADER, width=470, height=100)
         right.pack(side="right", padx=(8, 16), pady=8, fill="y")
+        right.pack_propagate(False)
 
-        # Asignatura y docente
         info_top = tk.Frame(right, bg=C_HEADER)
-        info_top.pack(anchor="e")
+        info_top.pack(fill="x")
 
         tk.Label(info_top, text=ASIGNATURA,
                  bg=C_HEADER, fg=C_GOLD,
@@ -221,23 +214,30 @@ class App(tk.Tk):
                  bg=C_HEADER, fg="#a8d8a8",
                  font=("Segoe UI", 8, "italic")).pack(anchor="e")
 
-        # Separador
-        tk.Frame(right, bg="#2d6a40", height=1).pack(fill="x", pady=4)
+        tk.Frame(right, bg="#2d6a40", height=1).pack(fill="x", pady=5)
 
-        # Grupo e integrantes
-        tk.Label(right, text=GRUPO,
+        group_row = tk.Frame(right, bg=C_HEADER)
+        group_row.pack(fill="x")
+        tk.Label(group_row, text=GRUPO,
                  bg=C_HEADER, fg=C_FG,
                  font=("Segoe UI", 8, "bold")).pack(anchor="e")
 
-        for nombre, gh in INTEGRANTES:
-            row = tk.Frame(right, bg=C_HEADER)
-            row.pack(anchor="e")
-            tk.Label(row, text="• " + nombre,
-                     bg=C_HEADER, fg=C_FG,
-                     font=("Segoe UI", 8)).pack(side="left")
-            tk.Label(row, text=f"  @{gh}",
-                     bg=C_HEADER, fg=C_MUTED,
-                     font=("Segoe UI", 7, "italic")).pack(side="left")
+        team = tk.Frame(right, bg=C_HEADER)
+        team.pack(fill="x", pady=(3, 0))
+        for idx, (nombre, gh) in enumerate(INTEGRANTES):
+            card = tk.Frame(team, bg=C_HEADER2,
+                            highlightbackground="#2d6a40",
+                            highlightthickness=1)
+            card.grid(row=0, column=idx, sticky="ew", padx=(0 if idx == 0 else 4, 0))
+            team.grid_columnconfigure(idx, weight=1, uniform="team")
+            tk.Label(card, text=nombre,
+                     bg=C_HEADER2, fg=C_FG,
+                     font=("Segoe UI", 7, "bold"),
+                     padx=4).pack(fill="x")
+            tk.Label(card, text=f"@{gh}",
+                     bg=C_HEADER2, fg="#b8c7c7",
+                     font=("Segoe UI", 7, "italic"),
+                     padx=4).pack(fill="x")
 
     @staticmethod
     def _tag(parent: tk.Frame, text: str, color: str):
@@ -245,6 +245,29 @@ class App(tk.Tk):
                  bg=color, fg="white",
                  font=("Segoe UI", 7, "bold"),
                  relief="flat", padx=4, pady=2).pack(side="left", padx=2)
+
+    def _load_logo(self, parent: tk.Frame) -> bool:
+        if not LOGO_PATH.exists():
+            return False
+
+        try:
+            if PIL_OK:
+                img = Image.open(LOGO_PATH)
+                img.thumbnail(LOGO_MAX_SIZE, Image.LANCZOS)
+                self._logo_img = ImageTk.PhotoImage(img)
+            else:
+                img = tk.PhotoImage(file=str(LOGO_PATH))
+                sx = max(1, (img.width() + LOGO_MAX_SIZE[0] - 1) // LOGO_MAX_SIZE[0])
+                sy = max(1, (img.height() + LOGO_MAX_SIZE[1] - 1) // LOGO_MAX_SIZE[1])
+                self._logo_img = img.subsample(sx, sy) if sx > 1 or sy > 1 else img
+
+            tk.Label(parent, image=self._logo_img, bg=C_HEADER).pack(
+                anchor="w", fill="both", expand=True
+            )
+            return True
+        except Exception as exc:
+            self._logo_error = str(exc)
+            return False
 
     # ── Panel izquierdo ───────────────────────────────────────────────────────
 
@@ -272,6 +295,29 @@ class App(tk.Tk):
             btn_frame, "▶   Java / Maven",
             C_BTN_JAV, C_BTN_JAV2, lambda: self._run("java"))
         self.btn_jav.pack(fill="x")
+
+        options = tk.Frame(parent, bg=C_PANEL)
+        options.pack(fill="x", padx=12, pady=(8, 0))
+        tk.Checkbutton(
+            options,
+            text="Grabar video Robot",
+            variable=self.var_record_video,
+            bg=C_PANEL,
+            fg=C_FG,
+            activebackground=C_PANEL,
+            activeforeground=C_FG,
+            selectcolor=C_BG,
+            font=FONT_SMALL,
+            anchor="w",
+            cursor="hand2",
+        ).pack(side="left")
+        tk.Label(
+            options,
+            text="solo suite Robot visible, guarda .avi en robot/results/videos",
+            bg=C_PANEL,
+            fg=C_MUTED,
+            font=FONT_TINY,
+        ).pack(side="left", padx=(8, 0))
 
         ttk.Separator(parent).pack(fill="x", padx=12, pady=(10, 0))
 
@@ -537,6 +583,7 @@ class App(tk.Tk):
     def _build_cmd_rf(self):
         venv_robot = ROBOT / "venv" / "Scripts" / "robot.exe"
         robot_cmd  = str(venv_robot) if venv_robot.exists() else "robot"
+        record_video = "true" if self.var_record_video.get() else "false"
         cmd = [
             robot_cmd,
             "--outputdir", str(ROBOT / "results" / "logs"),
@@ -545,7 +592,7 @@ class App(tk.Tk):
             "--report", "report.html",
             "--variable", "BROWSER:chrome",
             "--variable", "HEADLESS:false",
-            "--variable", "RECORD_VIDEO:false",
+            "--variable", f"RECORD_VIDEO:{record_video}",
             "--variable", f"SCREENSHOTS_DIR:{ROBOT / 'results' / 'screenshots'}",
             "--variable", f"VIDEOS_DIR:{ROBOT / 'results' / 'videos'}",
             "--loglevel", "INFO",
