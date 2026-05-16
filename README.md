@@ -1,5 +1,8 @@
 # Biblioteca Pro — Suite QA Automatizada
 
+<img width="32" height="31" alt="Icono" src="https://github.com/user-attachments/assets/5bddcd31-9b88-45ec-9d3a-323759430434" />
+
+
 > Pruebas end-to-end automatizadas para la aplicación web **Biblioteca Pro**,
 > implementadas con dos stacks complementarios y una interfaz gráfica de ejecución.
 
@@ -22,15 +25,10 @@
      Notion, GitHub Pages o cualquier plataforma que acepte HTML.
      ═══════════════════════════════════════════════════════════════ -->
 
-<iframe
-  src="https://docs.google.com/presentation/d/e/2PACX-1vTdbCmqJRZQ9j_RhMr9mpKgxCtge33yqo5Y0yOKaVa0prgEFEyft3TTxobcRC_O2dsxaDVmLaCOPlJ3/pubembed?start=false&loop=false&delayms=3000"
-  frameborder="0"
-  width="1440"
-  height="839"
-  allowfullscreen="true"
-  mozallowfullscreen="true"
-  webkitallowfullscreen="true">
-</iframe>
+<img width="1028" height="578" alt="image" src="https://github.com/user-attachments/assets/a0e03004-ff76-45b9-bba0-cd49d084690e" />
+<a href="https://drive.google.com/file/d/1uuHhV9Mp4ZYYKz5314SNUxZHwf9t3Aau/preview" target="_blank">
+  <img width="1028" height="578" alt="image" src="https://github.com/user-attachments/assets/a0e03004-ff76-45b9-bba0-cd49d084690e" />
+</a>
 
 ---
 
@@ -52,6 +50,9 @@
 10. [Limpieza](#limpieza)
 
 ---
+
+<img width="1275" height="748" alt="image" src="https://github.com/user-attachments/assets/97f91fa7-0525-4a4c-bd2a-0469e9173779" />
+
 
 ## ¿Qué es este proyecto?
 
