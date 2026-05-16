@@ -1,6 +1,6 @@
 # Biblioteca Pro — Suite QA Automatizada
 
-<img width="32" height="31" alt="Icono" src="https://github.com/user-attachments/assets/5bddcd31-9b88-45ec-9d3a-323759430434" />
+<img width="1024" height="1024" alt="Icono" src="https://github.com/user-attachments/assets/02fd4991-5343-4520-af65-82facf9d6a91" />
 
 
 > Pruebas end-to-end automatizadas para la aplicación web **Biblioteca Pro**,
