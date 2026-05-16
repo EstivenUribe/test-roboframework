@@ -52,7 +52,6 @@
 
 ---
 
-<img width="1275" height="748" alt="image" src="https://github.com/user-attachments/assets/97f91fa7-0525-4a4c-bd2a-0469e9173779" />
 
 
 ## ¿Qué es este proyecto?
@@ -122,19 +121,12 @@ flowchart TD
 
 > Lanzador Tkinter para Windows — ejecuta ambas suites y muestra capturas en vivo.
 
-<!-- ════════════════════════════════════════════════════════════
-     SCREENSHOT DE LA INTERFAZ
-     Reemplaza esta línea con una imagen real de la GUI:
-     ![GUI Launcher](docs/screenshot_gui.png)
-     ════════════════════════════════════════════════════════════ -->
 
-```
-┌─────────────────────────────────────────────────────┐
-│          [  Insertar screenshot de la GUI  ]         │
-│                                                     │
-│   Ejecutar con:  gui\launcher.bat                   │
-└─────────────────────────────────────────────────────┘
-```
+
+
+<img width="1275" height="748" alt="image" src="https://github.com/user-attachments/assets/97f91fa7-0525-4a4c-bd2a-0469e9173779" />
+
+
 
 **Funciones principales:**
 - Botones de suite completa (Robot verde · Java azul)
