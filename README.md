@@ -25,7 +25,7 @@
      Notion, GitHub Pages o cualquier plataforma que acepte HTML.
      ═══════════════════════════════════════════════════════════════ -->
 
-<img width="1028" height="578" alt="image" src="https://github.com/user-attachments/assets/a0e03004-ff76-45b9-bba0-cd49d084690e" />
+
 <a href="https://drive.google.com/file/d/1uuHhV9Mp4ZYYKz5314SNUxZHwf9t3Aau/preview" target="_blank">
   <img width="1028" height="578" alt="image" src="https://github.com/user-attachments/assets/a0e03004-ff76-45b9-bba0-cd49d084690e" />
 </a>
